@@ -39,6 +39,11 @@ app.get('/api/check-auth', (req, res) => {
     }
   });
 
+  app.post('/api/logout', (req, res) => {
+    res.clearCookie('token');
+    res.json({ message: 'Logged out successfully' });
+  });
+
   app.post('/api/login', (req, res) => {
     const { login, password } = req.body;
   
