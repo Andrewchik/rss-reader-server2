@@ -80,6 +80,50 @@ app.get('/api/check-auth', (req, res) => {
   });
 
 
+  app.put('/api/articles/:id', async (req, res) => {
+    const articleId = req.params.id;
+    const { title, content } = req.body;
+  
+    try {
+      const updatedArticle = await Article.findByIdAndUpdate(
+        articleId,
+        { title, content },
+        { new: true }
+      );
+  
+      if (!updatedArticle) {
+        return res.status(404).json({ error: 'Article not found' });
+      }
+  
+      res.json(updatedArticle);
+    } catch (error) {
+      console.error('Error updating article:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  });
+  
+
+
+  app.delete('/api/articles/:id', async (req, res) => {
+    const articleId = req.params.id;
+
+    console.log(articleId);
+    
+  
+    try {
+      const deletedArticle = await Article.findByIdAndDelete(articleId);
+      if (deletedArticle) {
+        res.status(200).json({ message: 'Article deleted successfully' });
+      } else {
+        res.status(404).json({ message: 'Article not found' });
+      }
+    } catch (error) {
+      console.error('Error deleting article:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  });
+
+
  // Parse RSS feeds and save articles
  const feedUrls = [
   'https://feeds.bbci.co.uk/news/rss.xml', // BBC News
