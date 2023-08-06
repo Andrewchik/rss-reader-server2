@@ -5,6 +5,9 @@ import articleRoutes from './routes/articleRoutes';
 import jwt from 'jsonwebtoken';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
+import parser from 'rss-parser';
+import cron from 'node-cron'; 
+import Article from './models/Article'; 
 
 import { config } from './config';
 
@@ -23,6 +26,17 @@ mongoose.connect('mongodb+srv://andrew:qwerty123@cluster0.hvhfelv.mongodb.net/?r
 });
 
 app.use('/articles', articleRoutes);
+
+
+app.get('/api/articles', async (req, res) => {
+  try {
+    const articles = await Article.find().sort('-createdAt');
+    res.json(articles);
+  } catch (error) {
+    console.error('Error getting articles:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
 
 app.get('/api/check-auth', (req, res) => {
     const token = req.cookies.token;
@@ -64,6 +78,36 @@ app.get('/api/check-auth', (req, res) => {
       res.status(401).json({ message: 'Invalid credentials' });
     }
   });
+
+
+ // Parse RSS feeds and save articles
+ const feedUrls = [
+  'https://feeds.bbci.co.uk/news/rss.xml', // BBC News
+];
+
+const fetchAndSaveArticles = async () => {
+  const parserInstance = new parser();
+  for (const feedUrl of feedUrls) {
+    try {
+      const feed = await parserInstance.parseURL(feedUrl);
+      for (const item of feed.items) {
+        const article = new Article({
+          title: item.title || '',
+          content: item.content || '',
+        });
+
+        console.log(article);
+        
+        await article.save(); 
+      }
+    } catch (error) {
+      console.error('Error parsing RSS feed:', error);
+    }
+  }
+};
+
+cron.schedule('0 0 * * *', fetchAndSaveArticles);
+
 
 app.listen(PORT, () => {
   console.log(`Server is listening on port ${PORT}`);
