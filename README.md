@@ -27,15 +27,17 @@ Before you begin, ensure you have the following installed:
     npm install
 
 ### Usage
-
-1. Generate a JWT token:
+1. Connecting to the database
+   - Place my .env file into the server folder.
+   
+3. Generate a JWT token:
  - Open a terminal and navigate to the server directory.
  - Run the following command:
    
      ```bash
      ts-node generateKey.ts
      
-2. Start the server:
+3. Start the server:
    
      ```bash
      npm start
