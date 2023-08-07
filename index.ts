@@ -9,7 +9,9 @@ import parser from 'rss-parser';
 import cron from 'node-cron'; 
 import Article from './models/Article'; 
 
-import { config } from './config';
+import { config } from './utils/config';
+import { login } from './controllers/authControllers';
+import { createArticle } from './controllers/articleController';
 
 const app: Application = express();
 const PORT: number = 3000;
@@ -53,42 +55,17 @@ app.get('/api/check-auth', (req, res) => {
     }
   });
 
+  app.post('/api/login', async (req, res) => {
+    login(req, res);
+  });
+
   app.post('/api/logout', (req, res) => {
     res.clearCookie('token');
     res.json({ message: 'Logged out successfully' });
   });
 
-  app.post('/api/login', (req, res) => {
-    const { login, password } = req.body;
-  
-    if (login === 'admin' && password === 'admin') {
-      const token = jwt.sign({ user: login }, config.secretKey, {
-        expiresIn: '1h'
-      });
-  
-      res.cookie('token', token, {
-        httpOnly: true,
-        sameSite: false,
-        secure: false,
-      });
-  
-      res.json({ message: 'Login successful!' });
-      console.log(token);
-    } else {
-      res.status(401).json({ message: 'Invalid credentials' });
-    }
-  });
-
   app.post('/api/articles', async (req, res) => {
-    try {
-      const { title, content } = req.body;
-      const newArticle = new Article({ title, content });
-      const savedArticle = await newArticle.save();
-      res.status(201).json(savedArticle);
-    } catch (error) {
-      console.error('Error creating article:', error);
-      res.status(500).json({ error: 'Internal server error' });
-    }
+    createArticle(req, res);
   });
 
   app.put('/api/articles/:id', async (req, res) => {
@@ -115,9 +92,6 @@ app.get('/api/check-auth', (req, res) => {
 
   app.delete('/api/articles/:id', async (req, res) => {
     const articleId = req.params.id;
-
-    console.log(articleId);
-    
   
     try {
       const deletedArticle = await Article.findByIdAndDelete(articleId);
