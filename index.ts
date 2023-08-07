@@ -79,6 +79,17 @@ app.get('/api/check-auth', (req, res) => {
     }
   });
 
+  app.post('/api/articles', async (req, res) => {
+    try {
+      const { title, content } = req.body;
+      const newArticle = new Article({ title, content });
+      const savedArticle = await newArticle.save();
+      res.status(201).json(savedArticle);
+    } catch (error) {
+      console.error('Error creating article:', error);
+      res.status(500).json({ error: 'Internal server error' });
+    }
+  });
 
   app.put('/api/articles/:id', async (req, res) => {
     const articleId = req.params.id;
@@ -101,8 +112,6 @@ app.get('/api/check-auth', (req, res) => {
       res.status(500).json({ error: 'Internal server error' });
     }
   });
-  
-
 
   app.delete('/api/articles/:id', async (req, res) => {
     const articleId = req.params.id;
